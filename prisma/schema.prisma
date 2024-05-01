@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Local {
+  id                 Int              @id @default(autoincrement())
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  name               String           @unique
+  nickname           String?
+  ein                String           @unique
+  email              String
+  phone              String?
+  localTypeId        Int
+  localType          LocalType        @relation(fields: [localTypeId], references: [id])
+  localInformationId Int              @unique
+  localInformation   LocalInformation @relation(fields: [localInformationId], references: [id])
+  gates              Gate[]
+}
+
+model LocalType {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  locals Local[]
+}
+
+model LocalInformation {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  zipCode    String
+  city       String
+  state      String
+  address    String
+  complement String?
+  local      Local?
+}
+
+model Gate {
+  id           Int      @id @default(autoincrement())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  name         String
+  localId      Int
+  isTicketGate Boolean
+  local        Local    @relation(fields: [localId], references: [id])
+}
