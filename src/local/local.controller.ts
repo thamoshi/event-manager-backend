@@ -6,17 +6,21 @@ import {
   Patch,
   Param,
   Delete,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { LocalService } from './local.service';
-import { Prisma } from '@prisma/client';
+import { Local, Prisma } from '@prisma/client';
+import { CreateLocalDto } from './dto/create-local.dto';
 
 @Controller('local')
 export class LocalController {
   constructor(private readonly localService: LocalService) {}
 
   @Post()
-  create(@Body() createLocalDto: Prisma.LocalCreateInput) {
-    return this.localService.create(createLocalDto);
+  @UsePipes(ValidationPipe)
+  async create(@Body() createLocalDto: CreateLocalDto): Promise<Local> {
+    return await this.localService.create(createLocalDto);
   }
 
   @Get()
