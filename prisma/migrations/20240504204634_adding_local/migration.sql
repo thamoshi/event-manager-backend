@@ -39,8 +39,6 @@ CREATE TABLE "LocalInformation" (
 -- CreateTable
 CREATE TABLE "Gate" (
     "id" SERIAL NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
     "name" TEXT NOT NULL,
     "localId" INTEGER NOT NULL,
     "isTicketGate" BOOLEAN NOT NULL,

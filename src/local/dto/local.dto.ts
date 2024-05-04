@@ -2,19 +2,19 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsEmail,
+  IsInt,
   IsNotEmpty,
-  IsNumber,
-  IsObject,
+  IsNotEmptyObject,
   IsOptional,
   IsPhoneNumber,
   IsString,
   Length,
   ValidateNested,
 } from 'class-validator';
-import { UpsertLocalInformationDto } from './upsert-local-information.dto';
-import { UpsertGateDto } from './upsert-gate.dto';
+import { LocalInformationDto } from './local-information.dto';
+import { GateDto } from './gate.dto';
 
-export class UpsertLocalDto {
+export class LocalDto {
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -36,16 +36,16 @@ export class UpsertLocalDto {
   @IsPhoneNumber('BR')
   phone?: string;
 
-  @IsNumber()
-  localtypeId: number;
+  @IsInt()
+  localTypeId: number;
 
-  @IsObject()
+  @IsNotEmptyObject()
   @ValidateNested()
-  @Type(() => UpsertLocalInformationDto)
-  localInformation: UpsertLocalInformationDto;
+  @Type(() => LocalInformationDto)
+  localInformation: LocalInformationDto;
 
   @IsArray()
   @ValidateNested()
-  @Type(() => UpsertGateDto)
-  gates?: UpsertGateDto[];
+  @Type(() => GateDto)
+  gates?: GateDto[];
 }

@@ -3,19 +3,19 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { LocalTypeService } from './local-type.service';
-import { Prisma } from '@prisma/client';
+import { UpsertLocalTypeDto } from './dto/upsert-local-type.dto';
 
 @Controller('local-type')
 export class LocalTypeController {
   constructor(private readonly localTypeService: LocalTypeService) {}
 
   @Post()
-  create(@Body() createLocalTypeDto: Prisma.LocalTypeCreateInput) {
+  create(@Body() createLocalTypeDto: UpsertLocalTypeDto) {
     return this.localTypeService.create(createLocalTypeDto);
   }
 
@@ -29,10 +29,10 @@ export class LocalTypeController {
     return this.localTypeService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(
     @Param('id') id: string,
-    @Body() updateLocalTypeDto: Prisma.LocalTypeUpdateInput,
+    @Body() updateLocalTypeDto: UpsertLocalTypeDto,
   ) {
     return this.localTypeService.update(+id, updateLocalTypeDto);
   }

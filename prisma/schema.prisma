@@ -48,11 +48,9 @@ model LocalInformation {
 }
 
 model Gate {
-  id           Int      @id @default(autoincrement())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id           Int     @id @default(autoincrement())
   name         String
   localId      Int
   isTicketGate Boolean
-  local        Local    @relation(fields: [localId], references: [id])
+  local        Local   @relation(fields: [localId], references: [id])
 }

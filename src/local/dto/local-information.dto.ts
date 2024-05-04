@@ -6,7 +6,7 @@ import {
   MinLength,
 } from 'class-validator';
 
-export class UpsertLocalInformationDto {
+export class LocalInformationDto {
   @IsString()
   @Length(8, 8)
   zipCode: string;
