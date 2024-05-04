@@ -11,10 +11,10 @@ import {
   Length,
   ValidateNested,
 } from 'class-validator';
-import { CreateLocalInformationDto } from './create-local-information.dto';
-import { CreateGateDto } from './create-gate.dto';
+import { UpsertLocalInformationDto } from './upsert-local-information.dto';
+import { UpsertGateDto } from './upsert-gate.dto';
 
-export class CreateLocalDto {
+export class UpsertLocalDto {
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -41,11 +41,11 @@ export class CreateLocalDto {
 
   @IsObject()
   @ValidateNested()
-  @Type(() => CreateLocalInformationDto)
-  localInformation: CreateLocalInformationDto;
+  @Type(() => UpsertLocalInformationDto)
+  localInformation: UpsertLocalInformationDto;
 
   @IsArray()
   @ValidateNested()
-  @Type(() => CreateGateDto)
-  gates?: CreateGateDto[];
+  @Type(() => UpsertGateDto)
+  gates?: UpsertGateDto[];
 }

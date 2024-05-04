@@ -8,10 +8,11 @@ import {
   Delete,
   UsePipes,
   ValidationPipe,
+  Put,
 } from '@nestjs/common';
 import { LocalService } from './local.service';
-import { Local, Prisma } from '@prisma/client';
-import { CreateLocalDto } from './dto/create-local.dto';
+import { Local } from '@prisma/client';
+import { UpsertLocalDto } from './dto/upsert-local.dto';
 
 @Controller('local')
 export class LocalController {
@@ -19,8 +20,8 @@ export class LocalController {
 
   @Post()
   @UsePipes(ValidationPipe)
-  async create(@Body() createLocalDto: CreateLocalDto): Promise<Local> {
-    return await this.localService.create(createLocalDto);
+  create(@Body() createLocalDto: UpsertLocalDto): Promise<Local> {
+    return this.localService.create(createLocalDto);
   }
 
   @Get()
@@ -33,11 +34,8 @@ export class LocalController {
     return this.localService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateLocalDto: Prisma.LocalUpdateInput,
-  ) {
+  @Put(':id')
+  update(@Param('id') id: string, @Body() updateLocalDto: UpsertLocalDto) {
     return this.localService.update(+id, updateLocalDto);
   }
 
