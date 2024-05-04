@@ -6,16 +6,20 @@ import {
   Param,
   Delete,
   Put,
+  ParseIntPipe,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { LocalTypeService } from './local-type.service';
-import { UpsertLocalTypeDto } from './dto/upsert-local-type.dto';
+import { LocalTypeDto } from './dto/local-type.dto';
 
 @Controller('local-type')
 export class LocalTypeController {
   constructor(private readonly localTypeService: LocalTypeService) {}
 
   @Post()
-  create(@Body() createLocalTypeDto: UpsertLocalTypeDto) {
+  @UsePipes(ValidationPipe)
+  create(@Body() createLocalTypeDto: LocalTypeDto) {
     return this.localTypeService.create(createLocalTypeDto);
   }
 
@@ -25,20 +29,21 @@ export class LocalTypeController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.localTypeService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.localTypeService.findOne(id);
   }
 
   @Put(':id')
+  @UsePipes(ValidationPipe)
   update(
-    @Param('id') id: string,
-    @Body() updateLocalTypeDto: UpsertLocalTypeDto,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateLocalTypeDto: LocalTypeDto,
   ) {
-    return this.localTypeService.update(+id, updateLocalTypeDto);
+    return this.localTypeService.update(id, updateLocalTypeDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.localTypeService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.localTypeService.remove(id);
   }
 }

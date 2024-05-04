@@ -8,6 +8,7 @@ import {
   UsePipes,
   ValidationPipe,
   Put,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { LocalService } from './local.service';
 import { Local } from '@prisma/client';
@@ -29,18 +30,21 @@ export class LocalController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.localService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.localService.findOne(id);
   }
 
   @Put(':id')
   @UsePipes(ValidationPipe)
-  update(@Param('id') id: string, @Body() updateLocalDto: LocalDto) {
-    return this.localService.update(+id, updateLocalDto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateLocalDto: LocalDto,
+  ) {
+    return this.localService.update(id, updateLocalDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.localService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.localService.remove(id);
   }
 }

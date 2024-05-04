@@ -14,19 +14,18 @@ datasource db {
 }
 
 model Local {
-  id                 Int              @id @default(autoincrement())
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  name               String           @unique
-  nickname           String?
-  ein                String           @unique
-  email              String
-  phone              String?
-  localTypeId        Int
-  localType          LocalType        @relation(fields: [localTypeId], references: [id])
-  localInformationId Int              @unique
-  localInformation   LocalInformation @relation(fields: [localInformationId], references: [id])
-  gates              Gate[]
+  id               Int               @id @default(autoincrement())
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  name             String            @unique
+  nickname         String?
+  ein              String            @unique
+  email            String
+  phone            String?
+  localTypeId      Int
+  localType        LocalType         @relation(fields: [localTypeId], references: [id], onDelete: Restrict)
+  localInformation LocalInformation?
+  gates            Gate[]
 }
 
 model LocalType {
@@ -44,7 +43,8 @@ model LocalInformation {
   state      String
   address    String
   complement String?
-  local      Local?
+  localId    Int      @unique
+  local      Local    @relation(fields: [localId], references: [id], onDelete: Cascade)
 }
 
 model Gate {
@@ -52,5 +52,5 @@ model Gate {
   name         String
   localId      Int
   isTicketGate Boolean
-  local        Local   @relation(fields: [localId], references: [id])
+  local        Local   @relation(fields: [localId], references: [id], onDelete: Cascade)
 }
