@@ -26,6 +26,7 @@ model Local {
   localType        LocalType         @relation(fields: [localTypeId], references: [id], onDelete: Restrict)
   localInformation LocalInformation?
   gates            Gate[]
+  events           Event[]
 }
 
 model LocalType {
@@ -45,6 +46,8 @@ model LocalInformation {
   complement String?
   localId    Int      @unique
   local      Local    @relation(fields: [localId], references: [id], onDelete: Cascade)
+
+  @@unique([zipCode, city, state, address, complement])
 }
 
 model Gate {
@@ -53,4 +56,29 @@ model Gate {
   localId      Int
   isTicketGate Boolean
   local        Local   @relation(fields: [localId], references: [id], onDelete: Cascade)
+
+  @@unique([name, isTicketGate, localId])
+}
+
+model Event {
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  name        String
+  eventTypeId Int
+  eventDate   DateTime
+  eventTime   String
+  localId     Int
+  email       String
+  phone       String?
+  local       Local     @relation(fields: [localId], references: [id], onDelete: Cascade)
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Restrict)
+
+  @@unique([eventDate, eventTime, localId])
+}
+
+model EventType {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  events Event[]
 }

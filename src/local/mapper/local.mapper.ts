@@ -5,7 +5,7 @@ export class LocalMapper {
   async createDtoToModel(
     createLocalDto: LocalDto,
   ): Promise<Prisma.LocalCreateInput> {
-    const prismaLocalCreateInput: Prisma.LocalCreateInput = {
+    return {
       name: createLocalDto.name,
       nickname: createLocalDto.nickname,
       ein: createLocalDto.ein,
@@ -21,13 +21,12 @@ export class LocalMapper {
       },
       gates: { createMany: { data: createLocalDto.gates } },
     };
-    return prismaLocalCreateInput;
   }
 
   async updateDtoToModel(
     updateLocalDto: LocalDto,
   ): Promise<Prisma.LocalUpdateInput> {
-    const prismaLocalUpdateInput: Prisma.LocalUpdateInput = {
+    return {
       name: updateLocalDto.name,
       nickname: updateLocalDto.nickname,
       ein: updateLocalDto.ein,
@@ -37,6 +36,5 @@ export class LocalMapper {
       localInformation: { update: updateLocalDto.localInformation },
       gates: { createMany: { data: updateLocalDto.gates } },
     };
-    return prismaLocalUpdateInput;
   }
 }
