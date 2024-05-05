@@ -1,3 +1,6 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
 Table local {
   id int [primary key, increment]
   created_at timestamp [default: `now()`]
@@ -25,6 +28,10 @@ Table local_information {
   state varchar(255) [not null]
   address varchar(255) [not null]
   complement varchar(255)
+
+  indexes {
+    (zip_code, city, state, address, complement) [unique]
+  }
 }
 
 Table gate {
@@ -34,12 +41,32 @@ Table gate {
   name varchar(255) [not null]
   local_id int [not null]
   is_ticket_gate boolean [not null]
+
+  indexes {
+    (name, local_id, is_ticket_gate) [unique]
+  }
 }
 
 Table event {
   id int [primary key, increment]
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
+  name varchar(255) [unique, not null]
+  event_type_id int [not null]
+  event_date date [not null]
+  event_time varchar [not null]
+  local_id int [not null]
+  email varchar(255) [not null]
+  phone varchar(255)
+
+  indexes {
+    (event_date, event_time, local_id) [unique]
+  }
+}
+
+Table event_type {
+  id int [primary key, increment]
+  name varchar(255) [unique, not null]
 }
 
 Ref: local.local_type_id > local_type.id [delete restrict]
@@ -47,3 +74,7 @@ Ref: local.local_type_id > local_type.id [delete restrict]
 Ref: local.local_information_id - local_information.id [delete cascade]
 
 Ref: gate.local_id > local.id [delete cascade]
+
+Ref: event.event_type_id > event_type.id [delete restrict]
+
+Ref: event.local_id > local.id [delete restrict]
