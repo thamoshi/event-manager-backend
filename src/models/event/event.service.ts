@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { EventDto } from './dto/event.dto';
@@ -10,72 +11,99 @@ import { EventMapper } from './mapper/event.mapper';
 
 @Injectable()
 export class EventService {
+  private readonly logger = new Logger(EventService.name);
+  private readonly mapper = new EventMapper();
+
   constructor(private readonly databaseService: DatabaseService) {}
 
   async create(createEventDto: EventDto): Promise<Event> {
-    await this.validateEventUpsert(createEventDto);
-    const mapper = new EventMapper();
-    const create: Prisma.EventCreateInput =
-      await mapper.createDtoToModel(createEventDto);
-    return this.databaseService.event.create({
-      data: create,
-    });
+    try {
+      await this.validateEventUpsert(createEventDto);
+      const create: Prisma.EventCreateInput =
+        await this.mapper.createDtoToModel(createEventDto);
+      return this.databaseService.event.create({
+        data: create,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
   async findAll(): Promise<Event[]> {
-    return this.databaseService.event.findMany({
-      include: {
-        eventType: true,
-        local: true,
-      },
-    });
+    try {
+      return this.databaseService.event.findMany({
+        include: {
+          eventType: true,
+          local: true,
+        },
+      });
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
   async findOne(id: number): Promise<Event> {
-    await this.validateExistingEvent(id);
-    return this.databaseService.event.findUnique({
-      where: { id },
-      include: {
-        eventType: true,
-        local: true,
-      },
-    });
+    try {
+      await this.validateExistingEvent(id);
+      return this.databaseService.event.findUnique({
+        where: { id },
+        include: {
+          eventType: true,
+          local: true,
+        },
+      });
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
   async update(eventId: number, updateEventDto: EventDto): Promise<Event> {
-    await this.validateExistingEvent(eventId);
-    await this.validateEventUpsert(updateEventDto);
-    const mapper = new EventMapper();
-    const update: Prisma.EventUpdateInput =
-      await mapper.updateDtoToModel(updateEventDto);
-    return this.databaseService.event.update({
-      where: { id: eventId },
-      data: update,
-    });
+    try {
+      await this.validateExistingEvent(eventId);
+      await this.validateEventUpsert(updateEventDto);
+      const update: Prisma.EventUpdateInput =
+        await this.mapper.updateDtoToModel(updateEventDto);
+      return this.databaseService.event.update({
+        where: { id: eventId },
+        data: update,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
   async remove(id: number): Promise<Event> {
-    await this.validateExistingEvent(id);
-    return this.databaseService.event.delete({
-      where: { id },
-    });
+    try {
+      await this.validateExistingEvent(id);
+      return this.databaseService.event.delete({
+        where: { id },
+      });
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
-  private async validateEventUpsert(dto: EventDto): Promise<void> {
+  private async validateEventUpsert(dto: EventDto, id?: number): Promise<void> {
     const eventType = await this.databaseService.eventType.findUnique({
       where: { id: dto.eventTypeId },
     });
     if (!eventType)
       throw new NotFoundException('Tipo de evento não encontrado!');
 
-    const eventWithName = await this.databaseService.event.findFirst({
+    const eventWithInfo = await this.databaseService.event.findFirst({
       where: {
-        eventDate: dto.eventDate,
+        ...(id ? { NOT: { id } } : {}),
+        eventDate: new Date(dto.eventDate),
         eventTime: dto.eventTime,
         localId: dto.localId,
       },
     });
-    if (eventWithName)
+    if (eventWithInfo)
       throw new BadRequestException(
         'Já existe um evento na mesma data e mesmo local!',
       );

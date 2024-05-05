@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -10,45 +11,78 @@ import { EventTypeDto } from './dto/event-type.dto';
 
 @Injectable()
 export class EventTypeService {
+  private readonly logger = new Logger(EventTypeService.name);
+
   constructor(private readonly databaseService: DatabaseService) {}
 
   async create(createEventTypeDto: EventTypeDto): Promise<EventType> {
-    await this.validateEventTypeUpsert(createEventTypeDto);
-    return this.databaseService.eventType.create({
-      data: createEventTypeDto,
-    });
+    try {
+      await this.validateEventTypeUpsert(createEventTypeDto);
+      return this.databaseService.eventType.create({
+        data: createEventTypeDto,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
   async findAll(): Promise<EventType[]> {
-    return this.databaseService.eventType.findMany();
+    try {
+      return this.databaseService.eventType.findMany();
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
   async findOne(id: number): Promise<EventType> {
-    await this.validateExistingEventType(id);
-    return this.databaseService.eventType.findUnique({ where: { id } });
+    try {
+      await this.validateExistingEventType(id);
+      return this.databaseService.eventType.findUnique({ where: { id } });
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
   async update(
     id: number,
     updateEventTypeDto: EventTypeDto,
   ): Promise<EventType> {
-    await this.validateExistingEventType(id);
-    await this.validateEventTypeUpsert(updateEventTypeDto);
-    return this.databaseService.eventType.update({
-      where: { id },
-      data: updateEventTypeDto,
-    });
+    try {
+      await this.validateExistingEventType(id);
+      await this.validateEventTypeUpsert(updateEventTypeDto, id);
+      return this.databaseService.eventType.update({
+        where: { id },
+        data: updateEventTypeDto,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
   async remove(id: number): Promise<EventType> {
-    await this.validateExistingEventType(id);
-    await this.validateEventTypeReferences(id);
-    return this.databaseService.eventType.delete({ where: { id } });
+    try {
+      await this.validateExistingEventType(id);
+      await this.validateEventTypeReferences(id);
+      return this.databaseService.eventType.delete({ where: { id } });
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
-  private async validateEventTypeUpsert(dto: EventTypeDto): Promise<void> {
+  private async validateEventTypeUpsert(
+    dto: EventTypeDto,
+    id?: number,
+  ): Promise<void> {
     const eventType = await this.databaseService.eventType.findUnique({
-      where: { name: dto.name },
+      where: {
+        ...(id ? { NOT: { id } } : {}),
+        name: dto.name,
+      },
     });
     if (eventType)
       throw new BadRequestException(

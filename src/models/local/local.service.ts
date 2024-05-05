@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Local, Prisma } from '@prisma/client';
@@ -10,67 +11,94 @@ import { LocalMapper } from './mapper/local.mapper';
 
 @Injectable()
 export class LocalService {
+  private readonly logger = new Logger(LocalService.name);
+
   constructor(private readonly databaseService: DatabaseService) {}
 
   async create(createLocalDto: LocalDto): Promise<Local> {
-    await this.validateLocalUpsert(createLocalDto);
-    const mapper = new LocalMapper();
-    const create: Prisma.LocalCreateInput =
-      await mapper.createDtoToModel(createLocalDto);
-    return this.databaseService.local.create({
-      data: create,
-    });
+    try {
+      await this.validateLocalUpsert(createLocalDto);
+      const mapper = new LocalMapper();
+      const create: Prisma.LocalCreateInput =
+        await mapper.createDtoToModel(createLocalDto);
+      return this.databaseService.local.create({
+        data: create,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
   async findAll(): Promise<Local[]> {
-    return this.databaseService.local.findMany({
-      include: {
-        localType: true,
-        localInformation: true,
-        gates: true,
-      },
-    });
+    try {
+      return this.databaseService.local.findMany({
+        include: {
+          localType: true,
+          localInformation: true,
+          gates: true,
+        },
+      });
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
   async findOne(id: number): Promise<Local> {
-    await this.validateExistingLocal(id);
-    return this.databaseService.local.findUnique({
-      where: {
-        id,
-      },
-      include: {
-        localType: true,
-        localInformation: true,
-        gates: true,
-      },
-    });
+    try {
+      await this.validateExistingLocal(id);
+      return this.databaseService.local.findUnique({
+        where: {
+          id,
+        },
+        include: {
+          localType: true,
+          localInformation: true,
+          gates: true,
+        },
+      });
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
   async update(localId: number, updateLocalDto: LocalDto): Promise<Local> {
-    await this.validateExistingLocal(localId);
-    await this.validateLocalUpsert(updateLocalDto);
-    const mapper = new LocalMapper();
-    const update: Prisma.LocalUpdateInput =
-      await mapper.updateDtoToModel(updateLocalDto);
-    await this.databaseService.gate.deleteMany({ where: { localId } });
-    return this.databaseService.local.update({
-      where: {
-        id: localId,
-      },
-      data: update,
-    });
+    try {
+      await this.validateExistingLocal(localId);
+      await this.validateLocalUpsert(updateLocalDto, localId);
+      const mapper = new LocalMapper();
+      const update: Prisma.LocalUpdateInput =
+        await mapper.updateDtoToModel(updateLocalDto);
+      await this.databaseService.gate.deleteMany({ where: { localId } });
+      return this.databaseService.local.update({
+        where: {
+          id: localId,
+        },
+        data: update,
+      });
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
   async remove(id: number): Promise<Local> {
-    await this.validateExistingLocal(id);
-    return this.databaseService.local.delete({
-      where: {
-        id,
-      },
-    });
+    try {
+      await this.validateExistingLocal(id);
+      return this.databaseService.local.delete({
+        where: {
+          id,
+        },
+      });
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
-  private async validateLocalUpsert(dto: LocalDto): Promise<void> {
+  private async validateLocalUpsert(dto: LocalDto, id?: number): Promise<void> {
     const localType = await this.databaseService.localType.findUnique({
       where: { id: dto.localTypeId },
     });
@@ -79,6 +107,7 @@ export class LocalService {
 
     const localWithName = await this.databaseService.local.findUnique({
       where: {
+        ...(id ? { NOT: { id } } : {}),
         name: dto.name,
       },
     });
@@ -87,6 +116,7 @@ export class LocalService {
 
     const localWithEin = await this.databaseService.local.findUnique({
       where: {
+        ...(id ? { NOT: { id } } : {}),
         ein: dto.ein,
       },
     });
@@ -96,6 +126,7 @@ export class LocalService {
     const localInformation =
       await this.databaseService.localInformation.findFirst({
         where: {
+          ...(id ? { NOT: { localId: id } } : {}),
           zipCode: dto.localInformation.zipCode,
           city: dto.localInformation.city,
           state: dto.localInformation.state,
