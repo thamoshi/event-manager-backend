@@ -9,10 +9,11 @@ import {
   Put,
   UsePipes,
   ValidationPipe,
+  Query,
 } from '@nestjs/common';
 import { EventService } from './event.service';
 import { EventDto } from './dto/event.dto';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Events')
 @Controller('event')
@@ -34,12 +35,34 @@ export class EventController {
   }
 
   @Get()
+  @ApiQuery({
+    name: 'page',
+    type: Int16Array,
+    description: 'Número da página',
+    required: true,
+  })
+  @ApiQuery({
+    name: 'perPage',
+    type: Int16Array,
+    description: 'Quantidade de itens por página. Por padrão, perPage = 5',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'name',
+    type: String,
+    description: 'Nome a ser buscado',
+    required: false,
+  })
   @ApiResponse({
     status: 200,
     description: 'Lista de eventos buscada com sucesso.',
   })
-  findAll() {
-    return this.eventService.findAll();
+  findAll(
+    @Query('page', ParseIntPipe) page: number,
+    @Query('perPage') perPage?: number,
+    @Query('name') name?: string,
+  ) {
+    return this.eventService.findAll({ page, perPage, nameFilter: name });
   }
 
   @Get(':id')

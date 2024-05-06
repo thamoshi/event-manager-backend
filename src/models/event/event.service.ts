@@ -8,6 +8,7 @@ import { EventDto } from './dto/event.dto';
 import { DatabaseService } from 'src/database/database.service';
 import { Event, Prisma } from '@prisma/client';
 import { EventMapper } from './mapper/event.mapper';
+import { PaginatedResult } from 'src/utils/pagination/paginated-result.interface';
 
 @Injectable()
 export class EventService {
@@ -30,14 +31,41 @@ export class EventService {
     }
   }
 
-  async findAll(): Promise<Event[]> {
+  async findAll({
+    page,
+    perPage = 5,
+    nameFilter,
+  }: {
+    page: number;
+    perPage: number;
+    nameFilter?: string;
+  }): Promise<PaginatedResult<Event>> {
     try {
-      return this.databaseService.event.findMany({
+      const totalEvents = await this.databaseService.event.count({
+        ...(nameFilter ? { where: { name: { contains: nameFilter } } } : {}),
+      });
+      const totalPages = Math.ceil(totalEvents / perPage);
+      const prev = page > 1 ? page - 1 : null;
+      const next = page < totalPages ? page + 1 : null;
+
+      const events = await this.databaseService.event.findMany({
+        take: perPage,
+        skip: (page - 1) * perPage,
+        ...(nameFilter ? { where: { name: { contains: nameFilter } } } : {}),
         include: {
           eventType: true,
           local: true,
         },
       });
+
+      return {
+        data: events,
+        perPage,
+        totalPages,
+        currentPage: page,
+        prev,
+        next,
+      };
     } catch (error) {
       this.logger.error(error);
       throw error;

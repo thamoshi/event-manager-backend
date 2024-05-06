@@ -8,6 +8,7 @@ import { Local, Prisma } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
 import { LocalDto } from './dto/local.dto';
 import { LocalMapper } from './mapper/local.mapper';
+import { PaginatedResult } from 'src/utils/pagination/paginated-result.interface';
 
 @Injectable()
 export class LocalService {
@@ -30,15 +31,42 @@ export class LocalService {
     }
   }
 
-  async findAll(): Promise<Local[]> {
+  async findAll({
+    page,
+    perPage = 5,
+    nameFilter,
+  }: {
+    page: number;
+    perPage: number;
+    nameFilter?: string;
+  }): Promise<PaginatedResult<Local>> {
     try {
-      return this.databaseService.local.findMany({
+      const totalLocals = await this.databaseService.local.count({
+        ...(nameFilter ? { where: { name: { contains: nameFilter } } } : {}),
+      });
+      const totalPages = Math.ceil(totalLocals / perPage);
+      const prev = page > 1 ? page - 1 : null;
+      const next = page < totalPages ? page + 1 : null;
+
+      const locals = await this.databaseService.local.findMany({
+        take: perPage,
+        skip: (page - 1) * perPage,
+        ...(nameFilter ? { where: { name: { contains: nameFilter } } } : {}),
         include: {
           localType: true,
           localInformation: true,
           gates: true,
         },
       });
+
+      return {
+        data: locals,
+        perPage,
+        totalPages,
+        currentPage: page,
+        prev,
+        next,
+      };
     } catch (error) {
       this.logger.error(error);
       throw error;

@@ -9,11 +9,12 @@ import {
   ValidationPipe,
   Put,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { LocalService } from './local.service';
 import { Local } from '@prisma/client';
 import { LocalDto } from './dto/local.dto';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Locals')
 @Controller('local')
@@ -35,12 +36,34 @@ export class LocalController {
   }
 
   @Get()
+  @ApiQuery({
+    name: 'page',
+    type: Int16Array,
+    description: 'Número da página',
+    required: true,
+  })
+  @ApiQuery({
+    name: 'perPage',
+    type: Int16Array,
+    description: 'Quantidade de itens por página. Por padrão, perPage = 5',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'name',
+    type: String,
+    description: 'Nome a ser buscado',
+    required: false,
+  })
   @ApiResponse({
     status: 200,
     description: 'Lista de locais buscada com sucesso.',
   })
-  findAll() {
-    return this.localService.findAll();
+  findAll(
+    @Query('page', ParseIntPipe) page: number,
+    @Query('perPage') perPage?: number,
+    @Query('name') name?: string,
+  ) {
+    return this.localService.findAll({ page, perPage, nameFilter: name });
   }
 
   @Get(':id')
