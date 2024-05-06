@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  db:
+  postgres:
     container_name: postgres_container
     image: postgres:latest
     restart: always
@@ -13,6 +13,18 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  backend-api:
+    container_name: event-manager-api
+    build:
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - 3000:3000
+    depends_on:
+      - postgres
+    env_file:
+      - .env.production
 
 volumes:
   postgres_data:
