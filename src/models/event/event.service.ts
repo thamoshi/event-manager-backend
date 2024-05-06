@@ -45,11 +45,14 @@ export class EventService {
         ...(nameFilter ? { where: { name: { contains: nameFilter } } } : {}),
       });
       const totalPages = Math.ceil(totalEvents / perPage);
+      if (page > totalPages)
+        throw new BadRequestException('Número de páginas excedido!');
+
       const prev = page > 1 ? page - 1 : null;
       const next = page < totalPages ? page + 1 : null;
 
       const events = await this.databaseService.event.findMany({
-        take: perPage,
+        take: +perPage,
         skip: (page - 1) * perPage,
         ...(nameFilter ? { where: { name: { contains: nameFilter } } } : {}),
         include: {
@@ -60,9 +63,9 @@ export class EventService {
 
       return {
         data: events,
-        perPage,
+        perPage: +perPage,
         totalPages,
-        currentPage: page,
+        currentPage: +page,
         prev,
         next,
       };

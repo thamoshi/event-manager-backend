@@ -38,13 +38,13 @@ export class LocalController {
   @Get()
   @ApiQuery({
     name: 'page',
-    type: Int16Array,
+    type: Number,
     description: 'Número da página',
     required: true,
   })
   @ApiQuery({
     name: 'perPage',
-    type: Int16Array,
+    type: Number,
     description: 'Quantidade de itens por página. Por padrão, perPage = 5',
     required: false,
   })
@@ -60,10 +60,14 @@ export class LocalController {
   })
   findAll(
     @Query('page', ParseIntPipe) page: number,
-    @Query('perPage') perPage?: number,
+    @Query('perPage') perPage: number,
     @Query('name') name?: string,
   ) {
-    return this.localService.findAll({ page, perPage, nameFilter: name });
+    return this.localService.findAll({
+      page: page,
+      perPage: perPage,
+      nameFilter: name,
+    });
   }
 
   @Get(':id')

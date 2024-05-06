@@ -37,13 +37,13 @@ export class EventController {
   @Get()
   @ApiQuery({
     name: 'page',
-    type: Int16Array,
+    type: Number,
     description: 'Número da página',
     required: true,
   })
   @ApiQuery({
     name: 'perPage',
-    type: Int16Array,
+    type: Number,
     description: 'Quantidade de itens por página. Por padrão, perPage = 5',
     required: false,
   })
